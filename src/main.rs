@@ -25,7 +25,7 @@ const ASPECT_RATIO: f64 = 4.0 / 3.0;
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let light_pos = Vec3::new(5.0, 14.0, 10.0);
+        let light_pos = Vec3::new(10.0, 14.0, 10.0);
         let to_light = (light_pos - rec.p).unit_vector();
         let shadow_ray = Ray::new(rec.p, to_light);
         if let Some(_shadow_rec) = world.hit(&shadow_ray, 0.001, f64::INFINITY) {
@@ -35,7 +35,6 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
         let ambient = 0.1;
         let diffuse = rec.normal.dot(to_light).max(0.0);
         let mut color = rec.material.color * (ambient + diffuse);
-
         color.x = color.x.min(1.0);
         color.y = color.y.min(1.0);
         color.z = color.z.min(1.0);
@@ -112,7 +111,11 @@ fn scene3() -> (HittableList, Camera) {
     };
 
     let sphere1 = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
-    let sphere2 = Sphere::new(Vec3::new(-0.6, -1.0, -0.5), 0.7, material_brown);
+    let sphere2 = Sphere::new(Vec3::new(-0.6, -1.0, -0.5), 0.7, material_brown.clone());
+    let sphere3 = Sphere::new(Vec3::new(-0.6, 0.0, -0.5), 0.1, material_brown.clone());
+    let sphere4 = Sphere::new(Vec3::new(-0.6, 0.3, -0.5), 0.1, material_brown.clone());
+    let sphere5 = Sphere::new(Vec3::new(-0.6, 0.6, -0.5), 0.1, material_brown.clone());
+    let sphere6 = Sphere::new(Vec3::new(-0.6, 0.9, -0.5), 0.1, material_brown.clone());
 
     let plane = Plane::new(
         Vec3::new(0.0, -0.5, 0.0),
@@ -129,13 +132,17 @@ fn scene3() -> (HittableList, Camera) {
     let mut world = HittableList::new();
     world.add(Box::new(sphere1));
     world.add(Box::new(sphere2));
+    world.add(Box::new(sphere3));
+    world.add(Box::new(sphere4));
+    world.add(Box::new(sphere5));
+    world.add(Box::new(sphere6));
     world.add(Box::new(plane));
     world.add(Box::new(cube));
     world.add(Box::new(cylinder));
 
     let cam = Camera::new(
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.2, 0.0, 0.1),
+        Vec3::new(-0.1, 0.15, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
         ASPECT_RATIO,
