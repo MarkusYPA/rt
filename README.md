@@ -80,11 +80,33 @@ let cylinder = Cylinder::new(center, radius, height, material);
 - `height`: A `f64` representing the height of the cylinder.
 - `material`: A `Material` struct representing the color of the cylinder.
 
+## How to Adjust Resolution
+
+The resolution of the output image is determined by the `image_width` and `aspect_ratio` variables in the `main` function in `src/main.rs`.
+
+```rust
+let aspect_ratio = 16.0 / 9.0;
+let image_width = 800;
+let image_height = (image_width as f64 / aspect_ratio) as i32;
+```
+
+To change the resolution, you can modify the `image_width` and `aspect_ratio` variables.
+
 ## How to Adjust Brightness
 
 The brightness of the objects is determined by the `color` field of the `Material` struct. The `color` is a `Vec3` where each component (x, y, z) corresponds to the R, G, and B values of the color, respectively. The values range from 0.0 to 1.0.
 
 To make an object dimmer, you can reduce the values of the `color` vector. For example, to make a red object dimmer, you can change `Vec3::new(1.0, 0.0, 0.0)` to `Vec3::new(0.5, 0.0, 0.0)`.
+
+## How to Adjust the Light
+
+The position of the light source is defined in the `ray_color` function in `src/main.rs`.
+
+```rust
+let light_pos = Vec3::new(-10.0, 10.0, -10.0);
+```
+
+To change the position of the light, you can modify the values in this `Vec3`.
 
 ## How to Move the Camera
 
