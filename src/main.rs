@@ -25,7 +25,7 @@ const ASPECT_RATIO: f64 = 4.0 / 3.0;
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let light_pos = Vec3::new(-10.0, 10.0, -10.0);
+        let light_pos = Vec3::new(5.0, 14.0, 10.0);
         let to_light = (light_pos - rec.p).unit_vector();
         let shadow_ray = Ray::new(rec.p, to_light);
         if let Some(_shadow_rec) = world.hit(&shadow_ray, 0.001, f64::INFINITY) {
@@ -101,22 +101,28 @@ fn scene3() -> (HittableList, Camera) {
     let material_yellow = Material {
         color: Vec3::new(1.0, 1.0, 0.0),
     };
+    let material_brown = Material {
+        color: Vec3::new(0.75, 0.5, 0.5),
+    };
 
-    let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
+    let sphere1 = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
+    let sphere2 = Sphere::new(Vec3::new(-0.6, -1.0, -0.5), 0.7, material_brown);
+
     let plane = Plane::new(
         Vec3::new(0.0, -0.5, 0.0),
         Vec3::new(0.0, 1.0, 0.0),
         material_green,
     );
     let cube = Cube::new(
-        Vec3::new(-1.5, 0.0, -1.5),
-        Vec3::new(-0.5, 1.0, -0.5),
+        Vec3::new(-2.0, -0.3, -2.0),
+        Vec3::new(-1.0, 0.7, -1.0),
         material_blue,
     );
-    let cylinder = Cylinder::new(Vec3::new(1.0, -0.5, -1.5), 0.5, 1.5, material_yellow);
+    let cylinder = Cylinder::new(Vec3::new(1.0, -0.5, -2.0), 0.5, 1.5, material_yellow);
 
     let mut world = HittableList::new();
-    world.add(Box::new(sphere));
+    world.add(Box::new(sphere1));
+    world.add(Box::new(sphere2));
     world.add(Box::new(plane));
     world.add(Box::new(cube));
     world.add(Box::new(cylinder));
@@ -134,10 +140,10 @@ fn scene3() -> (HittableList, Camera) {
 fn scene4() -> (HittableList, Camera) {
     let (world, _) = scene3();
     let cam = Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
-        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(-1.0, 0.5, 0.7),
+        Vec3::new(-0.65, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        75.0,
         ASPECT_RATIO,
     );
     (world, cam)
