@@ -1,7 +1,7 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
-use crate::material::Material;
 
 pub struct Cylinder {
     pub center: Vec3,
@@ -12,7 +12,12 @@ pub struct Cylinder {
 
 impl Cylinder {
     pub fn new(center: Vec3, radius: f64, height: f64, material: Material) -> Cylinder {
-        Cylinder { center, radius, height, material }
+        Cylinder {
+            center,
+            radius,
+            height,
+            material,
+        }
     }
 }
 
@@ -37,7 +42,12 @@ impl Hittable for Cylinder {
             if y0 > self.center.y && y0 < self.center.y + self.height && t0 > t_min && t0 < t_max {
                 t_body = t0;
             }
-            if y1 > self.center.y && y1 < self.center.y + self.height && t1 > t_min && t1 < t_max && t1 < t_body {
+            if y1 > self.center.y
+                && y1 < self.center.y + self.height
+                && t1 > t_min
+                && t1 < t_max
+                && t1 < t_body
+            {
                 t_body = t1;
             }
         }
@@ -47,7 +57,8 @@ impl Hittable for Cylinder {
         let t_top = (self.center.y + self.height - r.origin.y) / r.direction.y;
         if t_top > t_min && t_top < t_max {
             let p = r.at(t_top);
-            if (p.x - self.center.x).powi(2) + (p.z - self.center.z).powi(2) <= self.radius.powi(2) {
+            if (p.x - self.center.x).powi(2) + (p.z - self.center.z).powi(2) <= self.radius.powi(2)
+            {
                 t_caps = t_top;
             }
         }
@@ -56,7 +67,8 @@ impl Hittable for Cylinder {
         let t_bottom = (self.center.y - r.origin.y) / r.direction.y;
         if t_bottom > t_min && t_bottom < t_max && t_bottom < t_caps {
             let p = r.at(t_bottom);
-            if (p.x - self.center.x).powi(2) + (p.z - self.center.z).powi(2) <= self.radius.powi(2) {
+            if (p.x - self.center.x).powi(2) + (p.z - self.center.z).powi(2) <= self.radius.powi(2)
+            {
                 t_caps = t_bottom;
             }
         }

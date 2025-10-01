@@ -82,15 +82,17 @@ let cylinder = Cylinder::new(center, radius, height, material);
 
 ## How to Adjust Resolution
 
-The resolution of the output image is determined by the `image_width` and `aspect_ratio` variables in the `main` function in `src/main.rs`.
+The resolution of the output image is determined by the `ASPECT_RATIO` constant and the `image_width` variable in the `main` function in `src/main.rs`.
 
 ```rust
-let aspect_ratio = 16.0 / 9.0;
+const ASPECT_RATIO: f64 = 4.0 / 3.0;
+```
+```rust
 let image_width = 800;
-let image_height = (image_width as f64 / aspect_ratio) as i32;
+let image_height = (image_width as f64 / ASPECT_RATIO) as i32;
 ```
 
-To change the resolution, you can modify the `image_width` and `aspect_ratio` variables.
+To change the resolution, you can modify `image_width` and `ASPECT_RATIO`.
 
 ## How to Adjust Brightness
 

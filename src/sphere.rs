@@ -12,7 +12,11 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn new(center: Vec3, radius: f64, material: Material) -> Sphere {
-        Sphere { center, radius, material }
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -40,8 +44,8 @@ impl Hittable for Sphere {
         let mut rec = HitRecord {
             t: root,
             p: r.at(root),
-            normal: Vec3::new(0.0, 0.0, 0.0), // Placeholder
-            front_face: false, // Placeholder
+            normal: Vec3::new(0.0, 0.0, 0.0),   // Placeholder
+            front_face: false,                          // Placeholder
             material: &self.material,
         };
         let outward_normal = (rec.p - self.center) / self.radius;

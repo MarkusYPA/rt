@@ -12,7 +12,11 @@ pub struct Plane {
 
 impl Plane {
     pub fn new(point: Vec3, normal: Vec3, material: Material) -> Plane {
-        Plane { point, normal: normal.unit_vector(), material }
+        Plane {
+            point,
+            normal: normal.unit_vector(),
+            material,
+        }
     }
 }
 

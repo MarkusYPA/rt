@@ -1,25 +1,27 @@
-pub mod vec3;
-pub mod ray;
-pub mod hittable;
-pub mod sphere;
-pub mod hittable_list;
-pub mod plane;
+pub mod camera;
 pub mod cube;
 pub mod cylinder;
+pub mod hittable;
+pub mod hittable_list;
 pub mod material;
-pub mod camera;
+pub mod plane;
+pub mod ray;
+pub mod sphere;
+pub mod vec3;
 
-use vec3::Vec3;
-use ray::Ray;
-use hittable::Hittable;
-use sphere::Sphere;
-use hittable_list::HittableList;
-use plane::Plane;
+use camera::Camera;
 use cube::Cube;
 use cylinder::Cylinder;
+use hittable::Hittable;
+use hittable_list::HittableList;
 use material::Material;
-use camera::Camera;
+use plane::Plane;
+use ray::Ray;
+use sphere::Sphere;
 use std::env;
+use vec3::Vec3;
+
+const ASPECT_RATIO: f64 = 4.0 / 3.0;
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
@@ -40,7 +42,9 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
 }
 
 fn scene1() -> (HittableList, Camera) {
-    let material_red = Material { color: Vec3::new(1.0, 0.0, 0.0) };
+    let material_red = Material {
+        color: Vec3::new(1.0, 0.0, 0.0),
+    };
     let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
     let mut world = HittableList::new();
     world.add(Box::new(sphere));
@@ -49,16 +53,28 @@ fn scene1() -> (HittableList, Camera) {
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
-        16.0 / 9.0,
+        ASPECT_RATIO, //16.0 / 9.0,
     );
     (world, cam)
 }
 
 fn scene2() -> (HittableList, Camera) {
-    let material_blue = Material { color: Vec3::new(0.0, 0.0, 1.0) };
-    let material_green = Material { color: Vec3::new(0.0, 1.0, 0.0) };
-    let plane = Plane::new(Vec3::new(0.0, -0.5, 0.0), Vec3::new(0.0, 1.0, 0.0), material_green);
-    let cube = Cube::new(Vec3::new(-0.25, -0.25, -0.75), Vec3::new(0.25, 0.25, -0.25), material_blue);
+    let material_blue = Material {
+        color: Vec3::new(0.0, 0.0, 1.0),
+    };
+    let material_green = Material {
+        color: Vec3::new(0.0, 1.0, 0.0),
+    };
+    let plane = Plane::new(
+        Vec3::new(0.0, -0.5, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        material_green,
+    );
+    let cube = Cube::new(
+        Vec3::new(-0.25, -0.25, -0.75),
+        Vec3::new(0.25, 0.25, -0.25),
+        material_blue,
+    );
     let mut world = HittableList::new();
     world.add(Box::new(plane));
     world.add(Box::new(cube));
@@ -67,20 +83,36 @@ fn scene2() -> (HittableList, Camera) {
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
-        16.0 / 9.0,
+        ASPECT_RATIO,
     );
     (world, cam)
 }
 
 fn scene3() -> (HittableList, Camera) {
-    let material_red = Material { color: Vec3::new(1.0, 0.0, 0.0) };
-    let material_green = Material { color: Vec3::new(0.0, 1.0, 0.0) };
-    let material_blue = Material { color: Vec3::new(0.0, 0.0, 1.0) };
-    let material_yellow = Material { color: Vec3::new(1.0, 1.0, 0.0) };
+    let material_red = Material {
+        color: Vec3::new(1.0, 0.0, 0.0),
+    };
+    let material_green = Material {
+        color: Vec3::new(0.0, 1.0, 0.0),
+    };
+    let material_blue = Material {
+        color: Vec3::new(0.0, 0.0, 1.0),
+    };
+    let material_yellow = Material {
+        color: Vec3::new(1.0, 1.0, 0.0),
+    };
 
     let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
-    let plane = Plane::new(Vec3::new(0.0, -0.5, 0.0), Vec3::new(0.0, 1.0, 0.0), material_green);
-    let cube = Cube::new(Vec3::new(-1.5, 0.0, -1.5), Vec3::new(-0.5, 1.0, -0.5), material_blue);
+    let plane = Plane::new(
+        Vec3::new(0.0, -0.5, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        material_green,
+    );
+    let cube = Cube::new(
+        Vec3::new(-1.5, 0.0, -1.5),
+        Vec3::new(-0.5, 1.0, -0.5),
+        material_blue,
+    );
     let cylinder = Cylinder::new(Vec3::new(1.0, -0.5, -1.5), 0.5, 1.5, material_yellow);
 
     let mut world = HittableList::new();
@@ -94,7 +126,7 @@ fn scene3() -> (HittableList, Camera) {
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
-        16.0 / 9.0,
+        ASPECT_RATIO,
     );
     (world, cam)
 }
@@ -106,14 +138,18 @@ fn scene4() -> (HittableList, Camera) {
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         90.0,
-        16.0 / 9.0,
+        ASPECT_RATIO,
     );
     (world, cam)
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let scene_number = if args.len() > 1 { args[1].parse().unwrap_or(1) } else { 1 };
+    let scene_number = if args.len() > 1 {
+        args[1].parse().unwrap_or(1)
+    } else {
+        1
+    };
 
     let (world, cam) = match scene_number {
         1 => scene1(),
@@ -123,9 +159,9 @@ fn main() {
         _ => scene1(),
     };
 
-    let aspect_ratio = 16.0 / 9.0;
+    //let aspect_ratio = 4.0 / 3.0;
     let image_width = 800;
-    let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let image_height = (image_width as f64 / ASPECT_RATIO) as i32;
 
     println!("P3\n{} {}\n255", image_width, image_height);
 

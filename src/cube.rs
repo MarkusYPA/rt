@@ -1,7 +1,7 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
-use crate::material::Material;
 
 pub struct Cube {
     pub min: Vec3,

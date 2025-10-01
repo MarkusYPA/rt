@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
@@ -37,7 +37,11 @@ impl Add for Vec3 {
     type Output = Vec3;
 
     fn add(self, other: Vec3) -> Vec3 {
-        Vec3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z }
+        Vec3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
     }
 }
 
@@ -45,7 +49,11 @@ impl Sub for Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Vec3) -> Vec3 {
-        Vec3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z }
+        Vec3 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+        }
     }
 }
 
@@ -53,7 +61,11 @@ impl Mul<f64> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, t: f64) -> Vec3 {
-        Vec3 { x: self.x * t, y: self.y * t, z: self.z * t }
+        Vec3 {
+            x: self.x * t,
+            y: self.y * t,
+            z: self.z * t,
+        }
     }
 }
 
@@ -61,6 +73,10 @@ impl Div<f64> for Vec3 {
     type Output = Vec3;
 
     fn div(self, t: f64) -> Vec3 {
-        Vec3 { x: self.x / t, y: self.y / t, z: self.z / t }
+        Vec3 {
+            x: self.x / t,
+            y: self.y / t,
+            z: self.z / t,
+        }
     }
 }
