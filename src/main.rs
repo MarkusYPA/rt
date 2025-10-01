@@ -34,7 +34,13 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
 
         let ambient = 0.1;
         let diffuse = rec.normal.dot(to_light).max(0.0);
-        return rec.material.color * (ambient + diffuse);
+        let mut color = rec.material.color * (ambient + diffuse);
+
+        color.x = color.x.min(1.0);
+        color.y = color.y.min(1.0);
+        color.z = color.z.min(1.0);
+
+        return color;
     }
     let unit_direction = r.direction.unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
@@ -140,7 +146,7 @@ fn scene3() -> (HittableList, Camera) {
 fn scene4() -> (HittableList, Camera) {
     let (world, _) = scene3();
     let cam = Camera::new(
-        Vec3::new(-1.0, 0.5, 0.7),
+        Vec3::new(-1.0, 0.55, 0.7),
         Vec3::new(-0.65, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
         75.0,
