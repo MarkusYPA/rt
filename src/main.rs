@@ -8,6 +8,7 @@ pub mod plane;
 pub mod ray;
 pub mod sphere;
 pub mod vec3;
+pub mod light;
 
 use camera::Camera;
 use cube::Cube;
@@ -20,21 +21,24 @@ use ray::Ray;
 use sphere::Sphere;
 use std::env;
 use vec3::Vec3;
+use light::Light;
 
 const ASPECT_RATIO: f64 = 4.0 / 3.0;
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
+fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Vec3 {
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let light_pos = Vec3::new(10.0, 14.0, 10.0);
-        let to_light = (light_pos - rec.p).unit_vector();
+        let ambient = 0.15;
+        let ambient_color = rec.material.color * ambient;
+
+        let to_light = (light.position - rec.p).unit_vector();
         let shadow_ray = Ray::new(rec.p, to_light);
         if let Some(_shadow_rec) = world.hit(&shadow_ray, 0.001, f64::INFINITY) {
-            return rec.material.color * 0.1; // In shadow
+            return ambient_color; // In shadow
         }
-
-        let ambient = 0.1;
+        
         let diffuse = rec.normal.dot(to_light).max(0.0);
-        let mut color = rec.material.color * (ambient + diffuse);
+        let diffuse_color = rec.material.color * diffuse * light.brightness;
+        let mut color = ambient_color + diffuse_color;
         color.x = color.x.min(1.0);
         color.y = color.y.min(1.0);
         color.z = color.z.min(1.0);
@@ -46,7 +50,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Vec3 {
     Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
 }
 
-fn scene1() -> (HittableList, Camera) {
+fn scene1() -> (HittableList, Camera, Light) {
     let material_red = Material {
         color: Vec3::new(1.0, 0.0, 0.0),
     };
@@ -60,10 +64,10 @@ fn scene1() -> (HittableList, Camera) {
         90.0,
         ASPECT_RATIO, //16.0 / 9.0,
     );
-    (world, cam)
+    (world, cam, Light::default())
 }
 
-fn scene2() -> (HittableList, Camera) {
+fn scene2() -> (HittableList, Camera, Light) {
     let material_blue = Material {
         color: Vec3::new(0.0, 0.0, 1.0),
     };
@@ -71,29 +75,32 @@ fn scene2() -> (HittableList, Camera) {
         color: Vec3::new(0.0, 1.0, 0.0),
     };
     let plane = Plane::new(
-        Vec3::new(0.0, -0.5, 0.0),
+        Vec3::new(0.0, -0.25, 0.0),
         Vec3::new(0.0, 1.0, 0.0),
         material_green,
     );
     let cube = Cube::new(
-        Vec3::new(-0.25, -0.25, -0.75),
-        Vec3::new(0.25, 0.25, -0.25),
+        Vec3::new(-0.25, -0.25, -0.25),
+        Vec3::new(0.25, 0.25, 0.25),
         material_blue,
     );
     let mut world = HittableList::new();
     world.add(Box::new(plane));
     world.add(Box::new(cube));
     let cam = Camera::new(
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.4, 0.5, 0.7),
+        Vec3::new(0.1, 0.0, 0.0),
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        80.0,
         ASPECT_RATIO,
     );
-    (world, cam)
+
+    let light = Light::new(Vec3::new(-5.0, 3.0, 4.0), 0.25);
+
+    (world, cam, light)
 }
 
-fn scene3() -> (HittableList, Camera) {
+fn scene3() -> (HittableList, Camera, Light) {
     let material_red = Material {
         color: Vec3::new(1.0, 0.0, 0.0),
     };
@@ -147,11 +154,11 @@ fn scene3() -> (HittableList, Camera) {
         90.0,
         ASPECT_RATIO,
     );
-    (world, cam)
+    (world, cam, Light::default())
 }
 
-fn scene4() -> (HittableList, Camera) {
-    let (world, _) = scene3();
+fn scene4() -> (HittableList, Camera, Light) {
+    let (world, _, light) = scene3();
     let cam = Camera::new(
         Vec3::new(-1.0, 0.55, 0.7),
         Vec3::new(-0.65, 0.0, -1.0),
@@ -159,7 +166,7 @@ fn scene4() -> (HittableList, Camera) {
         75.0,
         ASPECT_RATIO,
     );
-    (world, cam)
+    (world, cam, light)
 }
 
 fn main() {
@@ -170,7 +177,7 @@ fn main() {
         1
     };
 
-    let (world, cam) = match scene_number {
+    let (world, cam, light) = match scene_number {
         1 => scene1(),
         2 => scene2(),
         3 => scene3(),
@@ -189,7 +196,7 @@ fn main() {
             let u = f64::from(i) / (f64::from(image_width) - 1.0);
             let v = f64::from(j) / (f64::from(image_height) - 1.0);
             let r = cam.get_ray(u, v);
-            let pixel_color = ray_color(&r, &world);
+            let pixel_color = ray_color(&r, &world, &light);
 
             let ir = (255.999 * pixel_color.x) as i32;
             let ig = (255.999 * pixel_color.y) as i32;
