@@ -9,6 +9,7 @@ pub mod plane;
 pub mod ray;
 pub mod sphere;
 pub mod vec3;
+pub mod color;
 
 use camera::Camera;
 use cube::Cube;
@@ -23,12 +24,13 @@ use rayon::prelude::*;
 use sphere::Sphere;
 use std::env;
 use vec3::Vec3;
+use color::Color;
 
 const ASPECT_RATIO: f64 = 4.0 / 3.0;
 
 fn scene1() -> (HittableList, Camera, Light) {
     let material_red = Material {
-        color: Vec3::new(1.0, 0.0, 0.0),
+        color: Color::new(255, 0, 0),
     };
     let sphere = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
     let mut world = HittableList::new();
@@ -45,10 +47,10 @@ fn scene1() -> (HittableList, Camera, Light) {
 
 fn scene2() -> (HittableList, Camera, Light) {
     let material_blue = Material {
-        color: Vec3::new(0.0, 0.0, 1.0),
+        color: Color::new(30, 30, 200),
     };
     let material_green = Material {
-        color: Vec3::new(0.0, 1.0, 0.0),
+        color: Color::new(0, 255, 0),
     };
     let plane = Plane::new(
         Vec3::new(0.0, -0.25, 0.0),
@@ -78,19 +80,19 @@ fn scene2() -> (HittableList, Camera, Light) {
 
 fn scene3() -> (HittableList, Camera, Light) {
     let material_red = Material {
-        color: Vec3::new(1.0, 0.0, 0.0),
-    };
-    let material_green = Material {
-        color: Vec3::new(0.0, 1.0, 0.0),
+        color: Color::new(255, 0, 0),
     };
     let material_blue = Material {
-        color: Vec3::new(0.0, 0.0, 1.0),
+        color: Color::new(30, 30, 200),
+    };
+    let material_green = Material {
+        color: Color::new(70, 230, 70),
     };
     let material_yellow = Material {
-        color: Vec3::new(1.0, 1.0, 0.0),
+        color: Color::new(255, 255, 0),
     };
     let material_brown = Material {
-        color: Vec3::new(0.75, 0.5, 0.5),
+        color: Color::new(120, 80, 80),
     };
 
     let sphere1 = Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, material_red);
@@ -145,10 +147,10 @@ fn scene4() -> (HittableList, Camera, Light) {
     (world, cam, light)
 }
 
-fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Vec3 {
+fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Color {
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
         let ambient = 0.15;
-        let ambient_color = rec.material.color * ambient;
+        let ambient_color = rec.material.color.clone() * ambient;
 
         let to_light = (light.position - rec.p).unit_vector();
         let shadow_ray = Ray::new(rec.p, to_light);
@@ -157,17 +159,18 @@ fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Vec3 {
         }
 
         let diffuse = rec.normal.dot(to_light).max(0.0);
-        let diffuse_color = rec.material.color * diffuse * light.brightness;
-        let mut color = ambient_color + diffuse_color;
-        color.x = color.x.min(1.0);
+        let diffuse_color = rec.material.color.clone() * diffuse * light.brightness;
+        let color = ambient_color + diffuse_color;
+        /* color.x = color.x.min(1.0);
         color.y = color.y.min(1.0);
-        color.z = color.z.min(1.0);
+        color.z = color.z.min(1.0); */
 
         return color;
     }
     let unit_direction = r.direction.unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
-    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+    let sky_color = Color::new(255, 255, 255) * (1.0 - t) + Color::new(126, 150, 255) * t;
+    sky_color
 }
 
 fn main() {
@@ -204,11 +207,7 @@ fn main() {
                 let ray = cam.get_ray(u, v);
                 let pixel_color = ray_color(&ray, &world, &light);
 
-                let ir = (255.999 * pixel_color.x) as i32;
-                let ig = (255.999 * pixel_color.y) as i32;
-                let ib = (255.999 * pixel_color.z) as i32;
-
-                row_pixels.push(format!("{} {} {}", ir, ig, ib));
+                row_pixels.push(format!("{} {} {}", pixel_color.0, pixel_color.1, pixel_color.2));
             }
             (y as u32, row_pixels)
         })

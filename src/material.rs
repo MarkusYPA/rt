@@ -1,6 +1,6 @@
-use crate::vec3::Vec3;
+use crate::{color::Color};
 
 #[derive(Clone)]
 pub struct Material {
-    pub color: Vec3,
+    pub color: Color,
 }
