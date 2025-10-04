@@ -3,52 +3,28 @@ pub mod cube;
 pub mod cylinder;
 pub mod hittable;
 pub mod hittable_list;
+pub mod light;
 pub mod material;
 pub mod plane;
 pub mod ray;
 pub mod sphere;
 pub mod vec3;
-pub mod light;
 
 use camera::Camera;
 use cube::Cube;
 use cylinder::Cylinder;
 use hittable::Hittable;
 use hittable_list::HittableList;
+use light::Light;
 use material::Material;
 use plane::Plane;
 use ray::Ray;
+use rayon::prelude::*;
 use sphere::Sphere;
 use std::env;
 use vec3::Vec3;
-use light::Light;
 
 const ASPECT_RATIO: f64 = 4.0 / 3.0;
-
-fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Vec3 {
-    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let ambient = 0.15;
-        let ambient_color = rec.material.color * ambient;
-
-        let to_light = (light.position - rec.p).unit_vector();
-        let shadow_ray = Ray::new(rec.p, to_light);
-        if let Some(_shadow_rec) = world.hit(&shadow_ray, 0.001, f64::INFINITY) {
-            return ambient_color; // In shadow
-        }
-        
-        let diffuse = rec.normal.dot(to_light).max(0.0);
-        let diffuse_color = rec.material.color * diffuse * light.brightness;
-        let mut color = ambient_color + diffuse_color;
-        color.x = color.x.min(1.0);
-        color.y = color.y.min(1.0);
-        color.z = color.z.min(1.0);
-
-        return color;
-    }
-    let unit_direction = r.direction.unit_vector();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
-}
 
 fn scene1() -> (HittableList, Camera, Light) {
     let material_red = Material {
@@ -169,6 +145,31 @@ fn scene4() -> (HittableList, Camera, Light) {
     (world, cam, light)
 }
 
+fn ray_color(r: &Ray, world: &dyn Hittable, light: &Light) -> Vec3 {
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        let ambient = 0.15;
+        let ambient_color = rec.material.color * ambient;
+
+        let to_light = (light.position - rec.p).unit_vector();
+        let shadow_ray = Ray::new(rec.p, to_light);
+        if let Some(_shadow_rec) = world.hit(&shadow_ray, 0.001, f64::INFINITY) {
+            return ambient_color; // In shadow
+        }
+
+        let diffuse = rec.normal.dot(to_light).max(0.0);
+        let diffuse_color = rec.material.color * diffuse * light.brightness;
+        let mut color = ambient_color + diffuse_color;
+        color.x = color.x.min(1.0);
+        color.y = color.y.min(1.0);
+        color.z = color.z.min(1.0);
+
+        return color;
+    }
+    let unit_direction = r.direction.unit_vector();
+    let t = 0.5 * (unit_direction.y + 1.0);
+    Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let scene_number = if args.len() > 1 {
@@ -191,18 +192,31 @@ fn main() {
 
     println!("P3\n{} {}\n255", image_width, image_height);
 
-    for j in (0..image_height).rev() {
-        for i in 0..image_width {
-            let u = f64::from(i) / (f64::from(image_width) - 1.0);
-            let v = f64::from(j) / (f64::from(image_height) - 1.0);
-            let r = cam.get_ray(u, v);
-            let pixel_color = ray_color(&r, &world, &light);
+    // Parallelize over rows
+    let rows: Vec<(u32, Vec<String>)> = (0..image_height)
+        .into_par_iter()
+        .map(|y| {
+            let mut row_pixels = Vec::with_capacity(image_width as usize);
 
-            let ir = (255.999 * pixel_color.x) as i32;
-            let ig = (255.999 * pixel_color.y) as i32;
-            let ib = (255.999 * pixel_color.z) as i32;
+            for x in 0..image_width {
+                let u = (x as f64 + 0.5) / (image_width - 1) as f64;
+                let v = 1.0 - (y as f64 + 0.5) / (image_height - 1) as f64;
+                let ray = cam.get_ray(u, v);
+                let pixel_color = ray_color(&ray, &world, &light);
 
-            println!("{} {} {}", ir, ig, ib);
+                let ir = (255.999 * pixel_color.x) as i32;
+                let ig = (255.999 * pixel_color.y) as i32;
+                let ib = (255.999 * pixel_color.z) as i32;
+
+                row_pixels.push(format!("{} {} {}", ir, ig, ib));
+            }
+            (y as u32, row_pixels)
+        })
+        .collect();
+
+        for (_, row) in rows {
+            for color in row {
+                println!("{}", color)
+            }
         }
-    }
 }
